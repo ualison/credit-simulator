@@ -1,0 +1,153 @@
+services:
+  mongodb:
+    image: mongo:7.0
+    container_name: credit-simulator-mongodb
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+      MONGO_INITDB_DATABASE: credit_simulator
+    volumes:
+       # Linha removida para reiniciar o container do docker sempre (Não persistir):
+      # - mongodb_data:/data/db
+      - ./logs/mongodb:/var/log/mongodb
+    command: [
+      "mongod",
+      "--logpath", "/var/log/mongodb/mongod.log",
+      "--logappend",
+      "--setParameter", "logLevel=1",
+      "--setParameter", "logComponentVerbosity={transaction:{verbosity:2},storage:{verbosity:0},network:{verbosity:0}}"
+    ]
+    networks:
+      - credit-simulator-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "2"
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  rabbitmq:
+    image: rabbitmq:3.12-management
+    container_name: credit-simulator-rabbitmq
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: password
+      RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: "-rabbit log_levels [{connection,error}] -rabbit log [{console,[{level,error}]}] -rabbit max_message_size 104857600"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - credit-simulator-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "1"
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 30s
+      retries: 3
+      start_period: 60s
+
+  credit-simulator-provider:
+    build:
+      context: ./credit-simulator-provider
+      dockerfile: Dockerfile
+    container_name: credit-simulator-provider
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATA_MONGODB_URI: mongodb://admin:password@mongodb:27017/credit_simulator?authSource=admin
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: admin
+      SPRING_RABBITMQ_PASSWORD: password
+
+      SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE: 1GB
+      SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE: 1GB
+      SERVER_TOMCAT_MAX_HTTP_FORM_POST_SIZE: 1073741824 
+      SERVER_TOMCAT_MAX_SWALLOW_SIZE: 1073741824
+
+      LOGGING_LEVEL_ORG_SPRINGFRAMEWORK: WARN
+      LOGGING_LEVEL_COM_RABBITMQ: WARN
+      LOGGING_LEVEL_ORG_MONGODB: WARN
+      LOGGING_LEVEL_ORG_APACHE_HTTP: WARN
+
+      CREDIT_SIMULATION_QUEUE: credit-simulation-queue
+      CREDIT_SIMULATION_RESULT_QUEUE: credit-simulation-result-queue
+    volumes:
+      - ./logs/provider:/app/logs
+    networks:
+      - credit-simulator-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "2"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  credit-simulator-consumer:
+    build:
+      context: ./credit-simulator-consumer
+      dockerfile: Dockerfile
+    container_name: credit-simulator-consumer
+    restart: always
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATA_MONGODB_URI: mongodb://admin:password@mongodb:27017/credit_simulator?authSource=admin
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: admin
+      SPRING_RABBITMQ_PASSWORD: password
+
+      SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE: 1GB
+      SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE: 1GB
+      SERVER_TOMCAT_MAX_HTTP_FORM_POST_SIZE: 1073741824 
+      SERVER_TOMCAT_MAX_SWALLOW_SIZE: 1073741824
+
+      LOGGING_LEVEL_ORG_SPRINGFRAMEWORK: WARN
+      LOGGING_LEVEL_COM_RABBITMQ: WARN
+      LOGGING_LEVEL_ORG_MONGODB: WARN
+      LOGGING_LEVEL_ORG_APACHE_HTTP: WARN
+
+      CREDIT_SIMULATION_QUEUE: credit-simulation-queue
+    volumes:
+      - ./logs/consumer:/app/logs
+    networks:
+      - credit-simulator-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "2"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+volumes:
+  mongodb_data:
+  rabbitmq_data:
+
+networks:
+  credit-simulator-network:

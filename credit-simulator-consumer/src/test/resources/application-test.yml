@@ -1,0 +1,54 @@
+spring:
+  application:
+    name: credit-simulator-consumer-test
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/credit-simulator-test
+  
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+    publisher-confirm-type: correlated
+    publisher-returns: true
+    listener:
+      simple:
+        retry:
+          enabled: true
+          initial-interval: 1000
+          max-attempts: 3
+          max-interval: 5000
+          multiplier: 2
+        acknowledge-mode: auto
+        prefetch: 1
+    template:
+      retry:
+        enabled: true
+        initial-interval: 1000
+        max-attempts: 3
+        max-interval: 5000
+        multiplier: 2
+
+app:
+  rabbitmq:
+    queues:
+      credit-simulation: credit-simulation-test-queue
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+
+server:
+  port: 8082
+  tomcat:
+    max-http-form-post-size: 10MB
+    max-swallow-size: 10MB
+
+logging:
+  level:
+    com.credit.simulator.consumer: DEBUG
+    org.springframework.amqp: DEBUG
+    org.springframework.data.mongodb: DEBUG

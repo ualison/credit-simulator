@@ -1,0 +1,10 @@
+{
+  "properties": [
+    {
+      "name": "app.rabbitmq.queues.credit-simulation",
+      "type": "java.lang.String",
+      "description": "Fila simulações de crédito",
+      "defaultValue": "credit-simulation-queue"
+    }
+  ]
+}

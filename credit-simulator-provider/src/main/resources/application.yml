@@ -1,0 +1,52 @@
+spring:
+  application:
+    name: credit-simulator-provider
+  servlet:
+    multipart:
+      max-file-size: ${SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE}
+      max-request-size: ${SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE}
+      enabled: true
+      file-size-threshold: 2KB
+      resolve-lazily: true
+  
+  data:
+      mongodb:
+        uri: ${SPRING_DATA_MONGODB_URI}
+
+  rabbitmq:
+      host: ${SPRING_RABBITMQ_HOST}
+      port: ${SPRING_RABBITMQ_PORT}
+      username: ${SPRING_RABBITMQ_USERNAME}
+      password: ${SPRING_RABBITMQ_PASSWORD}
+      publisher-confirm-type: correlated
+      publisher-returns: true
+      template:
+        retry:
+          enabled: true
+          initial-interval: 2000
+          max-attempts: 5
+          max-interval: 10000
+          multiplier: 2
+
+app:
+  rabbitmq:
+    queues:
+      credit-simulation: ${CREDIT_SIMULATION_QUEUE}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+
+server:
+  port: 8080
+  tomcat:
+    max-http-form-post-size: ${SERVER_TOMCAT_MAX_HTTP_FORM_POST_SIZE}
+    max-swallow-size: ${SERVER_TOMCAT_MAX_SWALLOW_SIZE}
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
