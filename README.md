@@ -2,9 +2,9 @@
 
 Sistema distribuído de simulação de crédito construído com Spring Boot e RabbitMQ, MongoDB com processamento assíncrono..
 
-## Arquitetura
+## Arquitetura 
 
-![Arquitetura](./images/arquitetura.png)
+![ArquiteturaFoto](./images/arquitetura.png)
 
 **Provider Service** (Porta 8080): Salva as simulações com status PENDENTE no MongoDB e manda pra fila  
 **Consumer Service** (Porta 8081): Pega da fila, faz os cálculos e atualiza o status da simulação  no MongoDB 
@@ -64,8 +64,8 @@ Pra testar a API:
 **1. Swagger UI (mais fácil)**  
 Vai em http://localhost:8080/swagger-ui.html 
 
-**2. Insomnia/Postman**  
-Importa o arquivo `insomnia-collection.json` que já tem todos os endpoints configurados
+**2. Insomnia**  
+Importa o arquivo `insomnia-collection.yml` que já tem todos os endpoints configurados
 
 ## Links importantes
 
@@ -87,28 +87,29 @@ node GenerateRequestsScript.js
 
 ```bash
 
-# Testes unitários (cobertura de 90%+)
+# Testes unitários
 cd credit-simulator-provider && mvn test
 cd credit-simulator-consumer && mvn test
 
-# Teste de performance (1000 simulações em menos de 5s)
-mvn test -Dtest=LoadTest
 ```
 
 ## Acessar o MongoDB
 
 ```bash
 # Conecta no MongoDB
-docker exec -it credit-simulator-mongodb mongosh -u admin -p password --authenticationDatabase admin
+docker exec -it credit-simulator-mongodb mongosh -u admin -p password --authenticationDatabase admin 
 
 # Seleciona o banco
 use credit_simulator
 
+# List all collections in the database
+show collections
+
 # Lista as simulações
-db.creditSimulation.find().pretty()
+db.credit_simulation.find().pretty()
 
 # Conta total de documentos
-db.creditSimulation.countDocuments()
+db.credit_simulation.countDocuments()
 ```
 
 ## Fluxo da arquitetura
