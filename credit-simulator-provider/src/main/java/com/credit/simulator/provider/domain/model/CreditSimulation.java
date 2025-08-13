@@ -10,7 +10,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-@Document(collection = "credit_simulations")
+@Document(collection = "credit_simulation")
 public class CreditSimulation {
     @Id
     private String id;

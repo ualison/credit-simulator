@@ -27,4 +27,16 @@ public class MathUtils {
         
         return simulation;
     }
+    
+    public static CreditSimulation setDefaultValues(CreditSimulation simulation) {
+        if (simulation == null) return simulation;
+        
+        simulation.setLoanAmount(simulation.getLoanAmount() != null ? simulation.getLoanAmount() : 0.0);
+        simulation.setTotalAmount(simulation.getTotalAmount() != null ? simulation.getTotalAmount() : 0.0);
+        simulation.setMonthlyPayment(simulation.getMonthlyPayment() != null ? simulation.getMonthlyPayment() : 0.0);
+        simulation.setTotalInterestRate(simulation.getTotalInterestRate() != null ? simulation.getTotalInterestRate() : 0.0);
+        simulation.setInterestRate(simulation.getInterestRate() != null ? simulation.getInterestRate() : 0.0);
+        
+        return simulation;
+    }
 }

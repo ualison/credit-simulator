@@ -43,9 +43,11 @@ public class CreditSimulationUseCase {
 	private Flux<CreditSimulation> processBatch(List<CreditSimulation> batch) {
 
 		logger.info("Processing batch {} of {}", batch.hashCode(), batch.size());
-
-		List<CreditSimulation> processedBatch = batch.stream().map(MathUtils::roundAllDecimals)
-				.collect(Collectors.toList());
+		
+		List<CreditSimulation> processedBatch = batch.stream()
+			        .map(MathUtils::setDefaultValues)
+			        .map(MathUtils::roundAllDecimals)
+			        .collect(Collectors.toList());
 
 		return repository.saveAll(processedBatch).collectList().flatMapMany(savedList -> {
 			return Flux.fromIterable(savedList)

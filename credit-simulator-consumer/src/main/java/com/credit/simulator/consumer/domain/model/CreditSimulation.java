@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
-@Document(collection = "credit_simulations")
+@Document(collection = "credit_simulation")
 public class CreditSimulation {
     @Id
     private String id;
